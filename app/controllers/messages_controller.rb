@@ -34,7 +34,8 @@ class MessagesController < ApplicationController
             turbo_stream.prepend('messages',
                                   partial: "messages/message",
                                   locals: { message: @message }),
-            turbo_stream.update('message_counter',Message.count)
+            turbo_stream.update('message_counter',Message.count),
+            turbo_stream.update('notice',"Message #{@message.id} Created")
           ]
         end
         format.html { redirect_to @message, notice: "Message was successfully created." }
@@ -57,9 +58,12 @@ class MessagesController < ApplicationController
     respond_to do |format|
       if @message.update(message_params)
         format.turbo_stream do
-          render turbo_stream: turbo_stream.update(@message,
-                                                    partial: "messages/message",
-                                                    locals: {message: @message})
+          render turbo_stream: [
+            turbo_stream.update(@message,
+                                partial: "messages/message",
+                                locals: {message: @message}),
+            turbo_stream.update('notice',"Message #{@message.id} Updated")
+          ]
         end
         format.html { redirect_to @message, notice: "Message was successfully updated." }
         format.json { render :show, status: :ok, location: @message }
@@ -82,7 +86,9 @@ class MessagesController < ApplicationController
       format.turbo_stream do
          render turbo_stream: [
           turbo_stream.remove(@message),
-          turbo_stream.update('message_counter',Message.count)]
+          turbo_stream.update('message_counter',Message.count),
+          turbo_stream.update('notice',"Message #{@message.id} deleted")
+        ]
       end
       format.html { redirect_to messages_path, status: :see_other, notice: "Message was successfully destroyed." }
       format.json { head :no_content }
